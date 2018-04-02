@@ -76,13 +76,10 @@ int main() {
  */
 void led_blink( void * parameters ){
 
-	static uint32_t toggle;
-	/** 4GPIO (LED) in FPGA fabric */
-	static uint32_t *ptr = (uint32_t *) 0x41200000;
+	static uint32_t counter = 0;
 
 	for( ;; ){
-		toggle ^=0xFF;
-		*ptr = toggle;
+		printk(" * Secure bare metal VM : %d ... \n\t", counter++);
 		YIELD()
 	}
 }

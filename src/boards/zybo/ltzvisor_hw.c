@@ -82,7 +82,7 @@ uint32_t ltzvisor_hw_init(void){
 	/* Config Interrupts Security */
 	interrupt_security_configall();
 	interrupt_security_config(UART_1_INTERRUPT,Int_NS);
-	interrupt_security_config(TTC1_TTCx_2_INTERRUPT,Int_S);
+	interrupt_security_config(TTC0_TTCx_1_INTERRUPT,Int_S);
 	printk("      * GIC security - OK  \n\t");
 
 	/** Initialize Platform-specific */

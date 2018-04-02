@@ -58,12 +58,12 @@ extern tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED];
 void hw_init( void ){
 
 	/** Initialize TTC1_2 as S Tick */
-	ttc_init(TTC1,TTCx_2,INTERVAL);
+	ttc_init(TTC0,TTCx_1,INTERVAL);
 
 	/** Config TTC1_2 ISR*/
-	interrupt_enable(TTC1_TTCx_2_INTERRUPT,TRUE);
-	interrupt_target_set(TTC1_TTCx_2_INTERRUPT,0,1);
-	interrupt_priority_set(TTC1_TTCx_2_INTERRUPT,6);
+	interrupt_enable(TTC0_TTCx_1_INTERRUPT,TRUE);
+	interrupt_target_set(TTC0_TTCx_1_INTERRUPT,0,1);
+	interrupt_priority_set(TTC0_TTCx_1_INTERRUPT,6);
 
 }
 
@@ -79,10 +79,10 @@ uint32_t tick_set( uint32_t time ){
 	uint32_t ret = 1;
 
 	/** Set tick rate */
-	ret = ttc_request(TTC1, TTCx_2, time);
+	ret = ttc_request(TTC0, TTCx_1, time);
 
 	/** Start counting */
-	ttc_enable(TTC1, TTCx_2);
+	ttc_enable(TTC0, TTCx_1);
 
 	return ret;
 }

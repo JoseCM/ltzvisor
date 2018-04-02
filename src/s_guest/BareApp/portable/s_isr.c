@@ -60,7 +60,13 @@ tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED] = {NULL};
  */
 void sFIQ_handler(uint32_t interrupt_){
 
-	if (sfiq_handlers[interrupt_])
-		sfiq_handlers[interrupt_]((void *) interrupt_);
+	uint32_t irq_num = interrupt_acknowledge();
+
+//	if (sfiq_handlers[interrupt_])
+//		sfiq_handlers[interrupt_]((void *) interrupt_);
+//	else
+		ttc_interrupt_clear(TTC0_TTCx_1_INTERRUPT);
+
+	interrupt_clear(irq_num , 0);
 }
 

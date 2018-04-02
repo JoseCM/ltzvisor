@@ -375,6 +375,19 @@ void interrupt_clear(uint32_t interrupt, uint32_t target){
 
 	/* Clear interrupt */
 	cpu_inter->ICCEOIR = ( target << 10) | interrupt;
+
+}
+
+/**
+ * Acknowledge interrupt
+ *
+ * @param
+ *
+ * @retval
+ * 		read value
+ */
+uint32_t interrupt_acknowledge(){
+	return cpu_inter->ICCIAR;
 }
 
 /**

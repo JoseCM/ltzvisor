@@ -293,6 +293,17 @@ void interrupt_target_set(uint32_t interrupt, uint32_t cpu, uint32_t set);
 void interrupt_clear(uint32_t interrupt, uint32_t target);
 
 /**
+ * Acknowledge interrupt
+ *
+ * @param
+ *
+ * @retval
+ * 		read value
+ */
+uint32_t interrupt_acknowledge();
+
+
+/**
  * Configure all interrupts' security
  *
  * @param	
