@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,25 +45,23 @@
  * 
  * (#) $id: ltzvisor_nsguest_config.c 10-10-2015 s_pinto & j_pereira $
  * (#) $id: ltzvisor_nsguest_config.c 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_nsguest_config.c 05-04-2018 j_martins (modified)$
 */
 
-#include <ltzvisor_nsguest_config.h>
+#include <ltzvisor_api.h>
 
 /** Info from ltzvisor_nsguest.S */
-extern uint32_t GPOS0_start, GPOS0_end;
+extern uint32_t NSGUEST_start, NSGUEST_end;
 
 /** Config structure according to NS Guest */
-struct nsguest_conf_entry nsguest_config[] ={
-	{
+struct guest_conf nsguest_config = {
 		.gce_name = "Linux 3.3 (vanilla)",
 		.gce_id = 0,
 		/* No ram disk needed */
 		.gce_trd_init = 0,
 		/* Binary image size */
-		.gce_bin_start = (uint32_t) &GPOS0_start,
-		.gce_bin_end = (uint32_t) &GPOS0_end,
+		.gce_bin_start = (uint32_t) &NSGUEST_start,
+		.gce_bin_end = (uint32_t) &NSGUEST_end,
 		/* Load address */
 		.gce_bin_load = 0x00100000,
-
-	}
 };

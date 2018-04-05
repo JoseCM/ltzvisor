@@ -5,6 +5,7 @@
  *
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -42,6 +43,7 @@
  * This file contains the secure vector table.
  * 
  * (#) $id: s_handlers.S 27-09-2017 s_pinto$
+ * (#) $id: s_handlers.S 05-04-2018 j_martins (modified)$
 */
 
  #include <ltzvisor_syscall_asm.h>
@@ -78,7 +80,6 @@ _prefetch_entry:
 
 _low_level_abt:
 	b	.	@ Stuck (FIXME)
-
 
 .global yield
 yield:

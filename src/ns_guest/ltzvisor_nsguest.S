@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,18 +45,13 @@
  * 
  * (#) $id: ltzvisor_nsguest.S 10-10-2015 s_pinto & j_pereira $
  * (#) $id: ltzvisor_nsguest.S 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_nsguest.S 05-04-2018 j_martins (modified)$
 */
 
- #include <cpu_defines.h>
+.section nsguest_image, "a"
 
-.section normal_image1, "a"
-
-.global GPOS0_start
-.global GPOS0_end
-GPOS0_start:
-	#ifdef CONFIG_NS_BM
-		.incbin "./ns_guest/zynq/baremetal.bin";
-	#else
-		/* include OS binary here */
-	#endif
-GPOS0_end:
+.global NSGUEST_start
+.global NSGUEST_end
+NSGUEST_start:
+	.incbin "./src/ns_guest/zynq/baremetal.bin";
+NSGUEST_end:

@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -43,6 +44,7 @@
  * This file contains code for generating asm_offsets.h.
  * 
  * (#) $id: asm_offsets.c 03-05-2015 j_pereira $
+ * (#) $id: asm_offsets.c 05-04-2018 j_martins (modified)$
 */
 
 
@@ -54,10 +56,11 @@
 #define GEN_SYM(name, value) \
 	asm volatile("\n->" #name " %0 " #value : : "j" (value))
 
-int main(void)
+int dummy_offsets_function(void) //extended asm must be obligatory inside a function
 {
 
 	GEN_SYM(_ASM_CP_SCTLR_OFFSET, pos(tzmachine, core.vcpu_regs_cp15.c1_SCTLR));
+
 	GEN_SYM(_ASM_MON_SPSR_OFFSET, pos(tzmachine, core.vcpu_regs_core.spsr_mon));
 	GEN_SYM(_ASM_MON_LR_OFFSET, pos(tzmachine, core.vcpu_regs_core.lr_mon));
 	GEN_SYM(_ASM_R4_OFFSET, pos(tzmachine, core.vcpu_regs_core.r4));

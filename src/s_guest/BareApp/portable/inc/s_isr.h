@@ -5,6 +5,7 @@
  *
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -42,6 +43,7 @@
  * This file contains the interrupt handling.
  *
  * (#) $id: s_isr.h 29-09-2017 s_pinto$
+ * (#) $id:  s_isr.h 05-04-2018 j_martins (modified)$
 */
 
 #ifndef __S_ISR_H
@@ -55,9 +57,11 @@
 }
 
 /** Type definition of the interrupt handler */
-typedef void (handler)(void * t);
+typedef void (*fiq_handler)(void);
 
-void sFIQ_handler(uint32_t interrupt_) __attribute__ ((interrupt ("FIQ")));
+void sFIQ_handler() __attribute__ ((interrupt ("FIQ")));
+
+void register_handler(uint32_t interrupt, fiq_handler handler);
 
 #endif /* __S_ISR_H */
 

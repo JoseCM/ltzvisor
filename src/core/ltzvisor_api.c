@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,12 +45,17 @@
  * 
  * (#) $id: ltzvisor_api.c 10-06-2015 s_pinto & j_pereira $
  * (#) $id: ltzvisor_api.c 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_api.c 05-04-2018 j_martins (modified)$
 */
 
 #include <ltzvisor_api.h>
 
 /** Main is part of the secure VM */
-extern void main(void);
+#ifdef CONFIG_COUPLED
+	extern void main(void);
+#else
+	void (*main)(void);
+#endif
 
 /**
  * LTZVisor initialization 
@@ -80,7 +86,7 @@ uint32_t ltzvisor_init(void){
 void ltzvisor_kickoff(void){
 
 	/** Exit from Monitor mode */
-	LTZVISOR_MON_EXIT()
+	LTZVISOR_MON_EXIT();
 
 	/** Secure guest entry point */
 	main();
@@ -110,7 +116,7 @@ void ltzvisor_schedule(void){
  *
  * @retval 	TRUE if goes well; FALSE if not!
  */
-uint32_t ltzvisor_nsguest_create( struct nsguest_conf_entry *g )
+uint32_t ltzvisor_nsguest_create( struct guest_conf *g )
 {
 
 	/** Init Guest attributes */
@@ -157,6 +163,27 @@ uint32_t ltzvisor_nsguest_create( struct nsguest_conf_entry *g )
 	return TRUE;
 }
 
+#ifndef CONFIG_COUPLED
+uint32_t ltzvisor_sguest_create( struct guest_conf *g )
+{
+
+	main = (void (*)(void)) g->gce_bin_load;
+
+	/** Load Guest bin to Non-Secure Memory */
+	printk("      * S_Guest loading ...  \n\t");
+	printk("      * S_Guest gce_bin_load: 0x%x \n\t", g->gce_bin_load);
+	printk("      * S_Guest gce_bin_start: 0x%x \n\t", g->gce_bin_start);
+	printk("      * S_Guest gce_bin_end: 0x%x \n\t", g->gce_bin_end);
+	memcpy((uint32_t *)g->gce_bin_load,(uint32_t *)g->gce_bin_start,(g->gce_bin_end - g->gce_bin_start));
+	if(g->gce_trd_init) {
+		memcpy((uint32_t *)g->gce_trd_load,(uint32_t *)g->gce_trd_start,(g->gce_trd_end - g->gce_trd_start));
+	}
+	printk("      * NS_Guest load - OK  \n\t");
+
+	return TRUE;
+}
+#endif
+
 /**
  * LTZVisor NS_guest restart
  *
@@ -164,7 +191,7 @@ uint32_t ltzvisor_nsguest_create( struct nsguest_conf_entry *g )
  *
  * @retval 	TRUE if it is successful; FALSE if not!
  */
-uint32_t ltzvisor_nsguest_restart( struct nsguest_conf_entry *g ){
+uint32_t ltzvisor_nsguest_restart( struct guest_conf *g ){
 
 	/** TODO - Implement restart of NS_Guest */
 	while(1);

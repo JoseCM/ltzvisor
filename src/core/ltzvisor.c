@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,12 +45,14 @@
  * 
  * (#) $id: ltzvisor.c 04-05-2015 s_pinto & j_pereira $
  * (#) $id: ltzvisor.c 16-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor.c 05-04-2018 j_martins (modified)$
 */
 
 #include <ltzvisor.h>
 
-/** Config NS_Guest struct */
-extern struct nsguest_conf_entry nsguest_config;
+/** Guest config structures */
+extern struct guest_conf nsguest_config;
+extern struct guest_conf sguest_config;
 
 /** NS_Guest context */
 tzmachine NS_Guest __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
@@ -80,6 +83,10 @@ void ltzvisor_main(void){
 		printk("Error: LTZVisor NS_Guest Create\n\t");
 		while(1);
 	}
+
+#ifndef CONFIG_COUPLED
+	ltzvisor_sguest_create(&sguest_config);
+#endif
 
 	/** Kick off LTZVisor and start running Guests */
 	printk(" -> LTZVisor: kicking off ... \n\t", ARCH);

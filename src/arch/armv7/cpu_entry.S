@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,6 +45,7 @@
  * 
  * (#) $id: cpu_entry.S 03-05-2015 s_pinto & j_pereira $
  * (#) $id: cpu_entry.S 16-09-2017 s_pinto (modified)$
+ * (#) $id: cpu_entry.S 05-04-2018 j_martins (modified)$
 */
 
 #include <cpu_defines.h>
@@ -82,10 +84,6 @@ __setup_CPU:
 	mrc	p15, 0, r0, c1, c0, 1			@ Read ACTLR
 	ldr  	r0, =0x00				@ Clear registers
 	mcr	p15, 0, r0, c1, c0, 1			@ Write ACTLR
-
-	/** Set secure vector table (VBAR) */
-	ldr	r0, =_secure_vector_table		@ Read the Secure Vector Table's Base Address
-	mcr	p15, 0, r0, c12, c0, 0			@ Write VBAR
 
 	/** Set monitor vector table (VBAR) */
 	ldr	r0, =_monitor_vector_table		@ Read the Monitor Vector Table's Base Address
@@ -201,7 +199,7 @@ get_cpu_id:
  *
  * @retval 	
  */
-.globl c_environment_init
+.global c_environment_init
 c_environment_init:
 	/* bss initialization (zeros) */
 	ldr	r1, =_SW_BSS_START

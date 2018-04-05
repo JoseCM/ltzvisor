@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -38,33 +39,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301 USA.
  *
- * [ltzvisor_nsguest_config.h]
+ * [ltzvisor_sguest_config.c]
  *
- * This file contains the LTZVisor NS Guest configuration (header).
+ * This file contains the LTZVisor NS Guest configuration.
  * 
- * (#) $id: ltzvisor_nsguest_config.h 10-10-2015 s_pinto & j_pereira $
- * (#) $id: ltzvisor_nsguest_config.h 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_nsguest_config.c 10-10-2015 s_pinto & j_pereira $
+ * (#) $id: ltzvisor_nsguest_config.c 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_sguest_config.c 05-04-2018 j_martins (modified)$
 */
 
-#ifndef __LTZVISOR_NSGUEST_CONFIG_H
-#define __LTZVISOR_NSGUEST_CONFIG_H
+#include <ltzvisor_api.h>
 
-#include <types.h>
+/** Info from ltzvisor_nsguest.S */
+extern uint32_t SGUEST_start, SGUEST_end;
 
-/** NS Guest config structure */
-struct nsguest_conf_entry {
-
-	char_t gce_name[30];
-	uint32_t gce_id;
-	/* Initial Ram Disk info */
-	uint32_t gce_trd_init;
-	uint32_t gce_trd_start;
-	uint32_t gce_trd_end;
-	uint32_t gce_trd_load;
-	/* Binary info */
-	uint32_t gce_bin_start;
-	uint32_t gce_bin_end;
-	uint32_t gce_bin_load;
+/** Config structure according to NS Guest */
+struct guest_conf sguest_config = {
+		.gce_name = "FreeRTOS v10",
+		.gce_id = 0,
+		/* No ram disk needed */
+		.gce_trd_init = 0,
+		/* Binary image size */
+		.gce_bin_start = (uint32_t) &SGUEST_start,
+		.gce_bin_end = (uint32_t) &SGUEST_end,
+		/* Load address */
+		.gce_bin_load = 0x00100000,
 };
-
-#endif /* __LTZVISOR_NSGUEST_CONFIG_H */

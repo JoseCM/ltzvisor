@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,6 +45,7 @@
  * 
  * (#) $id: ltzvisor_api.h 10-06-2015 s_pinto & j_pereira $
  * (#) $id: ltzvisor_api.h 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_api.h 05-04-2018 j_martins (modified)$
 */
 
 #ifndef __LTZVISOR_API_H
@@ -55,8 +57,22 @@
 #include <cpu_vcpu.h>
 #include <cpu_cp15_switch.h>
 #include <ltzvisor.h>
-#include <ltzvisor_nsguest_config.h>
 #include <ltzvisor_hw.h>
+
+struct guest_conf {
+
+	char_t gce_name[30];
+	uint32_t gce_id;
+	/* Initial Ram Disk info */
+	uint32_t gce_trd_init;
+	uint32_t gce_trd_start;
+	uint32_t gce_trd_end;
+	uint32_t gce_trd_load;
+	/* Binary info */
+	uint32_t gce_bin_start;
+	uint32_t gce_bin_end;
+	uint32_t gce_bin_load;
+};
 
 
 /**
@@ -93,7 +109,7 @@ void ltzvisor_schedule(void);
  *
  * @retval 	TRUE if it is successful; FALSE if not!
  */
-uint32_t ltzvisor_nsguest_create( struct nsguest_conf_entry *g );
+uint32_t ltzvisor_nsguest_create( struct guest_conf *g );
 
 /**
  * LTZVisor NS_guest restart
@@ -102,7 +118,7 @@ uint32_t ltzvisor_nsguest_create( struct nsguest_conf_entry *g );
  *
  * @retval 	TRUE if it is successful; FALSE if not!
  */
-uint32_t ltzvisor_nsguest_restart( struct nsguest_conf_entry *g );
+uint32_t ltzvisor_nsguest_restart( struct guest_conf *g );
 
 
 #endif /* __LTZVISOR_API_H */

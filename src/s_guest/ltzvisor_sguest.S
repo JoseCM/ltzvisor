@@ -5,6 +5,7 @@
  *
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
+ *  Jorge Pereira <jorgepereira89@gmail.com>
  *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
@@ -38,49 +39,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301 USA.
  *
- * [blink.c]
+ * [ltzvisor_sguest.S]
  *
- * This file contains a bare-metal Blink application.
+ * This file includes the S Guest binary image.
  * 
- * (#) $id: blink.c 27-09-2017 s_pinto$
+ * (#) $id: ltzvisor_nsguest.S 10-10-2015 s_pinto & j_pereira $
+ * (#) $id: ltzvisor_nsguest.S 18-09-2017 s_pinto (modified)$
+ * (#) $id: ltzvisor_sguest.S 05-04-2018 j_martins (modified)$
+ 
 */
 
-#include<hw_zynq.h>
-#include<printk.h>
+.section sguest_image, "a"
 
-void led_blink( void * pvParameters );
-
-int main() {
-
-	/** Initialize hardware */
-	hw_init();
-
-	printk(" * Secure bare metal VM: running ... \n\t");
-
-	/** Generate tick every 1s */
-	tick_set(1000000);
-
-	/* Calling Blinking Task (LED blink at 1s) */
-	led_blink((void*)0);
-
-	/* This point will never be reached */
-	for( ;; );
-
-}
-
-/**
- * Blink LED "Task"
- *
- * @param  	
- *
- * @retval 	
- */
-void led_blink( void * parameters ){
-
-	static uint32_t counter = 0;
-
-	for( ;; ){
-		printk(" * Secure bare metal VM : %d ... \n\t", counter++);
-		YIELD()
-	}
-}
+.global SGUEST_start
+.global SGUEST_end
+SGUEST_start:
+	//	.incbin "./???"
+SGUEST_end:

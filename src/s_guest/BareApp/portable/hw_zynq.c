@@ -5,6 +5,7 @@
  *
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -42,11 +43,17 @@
  * This file contains hardware-related initializations for Zynq.
  * 
  * (#) $id: hw_zynq.c 02-10-2017 s_pinto$
+ * (#) $id: hw_zynq.c 05-04-2018 j_martins (modified)$
 */
 
-#include<hw_zynq.h>
+#include <hw_zynq.h>
+#include <s_isr.h>
 
 extern tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED];
+
+void tick_handler(){
+	 ttc_interrupt_clear(TTC0_TTCx_1_INTERRUPT);
+}
 
 /**
  * Zynq-specific hardware initialization
@@ -57,6 +64,10 @@ extern tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED];
  */
 void hw_init( void ){
 
+	//set_vector_table();
+	asm volatile("ldr r0, =_secure_vector_table\n"		
+		"mcr	p15, 0, r0, c12, c0, 0":::"r0");
+
 	/** Initialize TTC1_2 as S Tick */
 	ttc_init(TTC0,TTCx_1,INTERVAL);
 
@@ -64,7 +75,9 @@ void hw_init( void ){
 	interrupt_enable(TTC0_TTCx_1_INTERRUPT,TRUE);
 	interrupt_target_set(TTC0_TTCx_1_INTERRUPT,0,1);
 	interrupt_priority_set(TTC0_TTCx_1_INTERRUPT,6);
+	register_handler(TTC0_TTCx_1_INTERRUPT, tick_handler);
 
+	asm volatile("cpsie f\n");
 }
 
 /**

@@ -5,6 +5,7 @@
  *
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -42,14 +43,16 @@
  * This file contains the interrupt handling.
  * 
  * (#) $id: s_isr.c 27-09-2017 s_pinto$
+ * (#) $id: s_isr.c 05-04-2018 j_martins (modified)$
 */
 
 #include <gic.h>
 #include <s_isr.h>
+#include <zynq_ttc.h>
 
 uint32_t interrupt;
 
-tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED] = {NULL};
+fiq_handler sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED] = {NULL};
 
 /**
  * Generic FIQ handler
@@ -58,15 +61,20 @@ tHandler* sfiq_handlers[NO_OF_INTERRUPTS_IMPLEMENTED] = {NULL};
  *
  * @retval 	
  */
-void sFIQ_handler(uint32_t interrupt_){
+void sFIQ_handler(){
 
 	uint32_t irq_num = interrupt_acknowledge();
 
-//	if (sfiq_handlers[interrupt_])
-//		sfiq_handlers[interrupt_]((void *) interrupt_);
-//	else
-		ttc_interrupt_clear(TTC0_TTCx_1_INTERRUPT);
+	if (sfiq_handlers[irq_num])
+		sfiq_handlers[irq_num]();
 
 	interrupt_clear(irq_num , 0);
 }
 
+void register_handler(uint32_t interrupt, fiq_handler handler){
+
+	if(interrupt < NO_OF_INTERRUPTS_IMPLEMENTED){
+		sfiq_handlers[interrupt] = handler;
+	}
+
+}

@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *  José Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -44,6 +45,7 @@
  * 
  * (#) $id: cpu_monitor.S 03-05-2015 s_pinto & j_pereira $
  * (#) $id: cpu_monitor.S 18-09-2017 s_pinto (modified) $
+ * (#) $id: cpu_monitor.S 05-04-2018 j_martins (modified)$
 */
 
  #include <cpu_defines.h>
@@ -83,7 +85,7 @@
 .endm
 
 /**
- * Get NS guest context's pointer (macro)
+ * Get NS guest contexts pointer (macro)
  *
  * @param
  *
@@ -268,25 +270,25 @@ _mon_fiq_handler:
 	push	{r4, lr} 
 	push	{r0 - r3}
 	/* ACK FIQ */
-	mrc 	p15,4,r0,c15,c0,0		@ Read Periph Base Addr
-	add 	r0,r0, #0x0100			@ Add GIC interface offset (A9)
-	ldr 	r1,[r0,#_ASM_GIC_INT_ID]	@ Get interrupt ID
-	ldr 	r2,=interrupt
-	str 	r1,[r2]
-	ldr 	r0,[r0,#0x0C]			@ ACK FIQ
+	@ mrc 	p15,4,r0,c15,c0,0		@ Read Periph Base Addr
+	@ add 	r0,r0, #0x0100			@ Add GIC interface offset (A9)
+	@ ldr 	r1,[r0,#_ASM_GIC_INT_ID]	@ Get interrupt ID
+	@ ldr 	r2,=interrupt
+	@ str 	r1,[r2]
+	@ ldr 	r0,[r0,#0x0C]			@ ACK FIQ
 	/* Save NS context */
 	SCR_NS_CLEAR				@ Disable NS bit and route FIQs in mon
 	GET_NS_WORLD_CONTEXT
 	WORLD_CONTEXT_SAVE
 	/* Handling FIQ */
-	ldr 	r2,=interrupt		
-	ldr 	r0,[r2]			
-	//bl 	ttc_interrupt_clear		/* FIXME - supposing always ttc_isr */
-	bl 	fiq_handler			/* FIXME - supposing always ttc_isr */
-	ldr 	r2,=interrupt		
-	ldr 	r0,[r2]
-	ldr 	r1,=0x00
-	bl 	interrupt_clear
+	@ ldr 	r2,=interrupt
+	@ ldr 	r0,[r2]
+	@ //bl 	ttc_interrupt_clear		/* FIXME - supposing always ttc_isr */
+	@ bl 	fiq_handler			/* FIXME - supposing always ttc_isr */
+	@ ldr 	r2,=interrupt
+	@ ldr 	r0,[r2]
+	@ ldr 	r1,=0x00
+	@ bl 	interrupt_clear
 	/* Restore FIQ state */
 	pop 	{r1-r2}				@ Pop SPSR_FIQ and LR_FIQ
 	mov 	r0, sp				@ Update stack pointer
