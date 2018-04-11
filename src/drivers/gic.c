@@ -401,8 +401,9 @@ void interrupt_security_configall(void){
 
 	uint32_t num_regs;
 	/* Configure all global interrupts as NS Interrupts */
-	for(num_regs=1; num_regs < GIC_NUM_REGISTERS; num_regs++){
+	for(num_regs=0; num_regs < GIC_NUM_REGISTERS; num_regs++){
 		int_dist->ICDISRx[num_regs] = 0xFFFFFFFF;
+		int_dist->ICDIPRx[num_regs] = 0x80808080;
 	}
 
 }

@@ -52,9 +52,9 @@
 
 /** Main is part of the secure VM */
 #ifdef CONFIG_COUPLED
-	extern void main(void);
+	extern void _start(void);
 #else
-	void (*main)(void);
+	void (*_start)(void);
 #endif
 
 /**
@@ -89,7 +89,7 @@ void ltzvisor_kickoff(void){
 	LTZVISOR_MON_EXIT();
 
 	/** Secure guest entry point */
-	main();
+	_start();
 
 	/** This point should never be reached */
 	while(1);	
@@ -167,7 +167,7 @@ uint32_t ltzvisor_nsguest_create( struct guest_conf *g )
 uint32_t ltzvisor_sguest_create( struct guest_conf *g )
 {
 
-	main = (void (*)(void)) g->gce_bin_load;
+	_start = (void (*)(void)) g->gce_bin_load;
 
 	/** Load Guest bin to Non-Secure Memory */
 	printk("      * S_Guest loading ...  \n\t");

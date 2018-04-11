@@ -91,9 +91,9 @@
  *
  * @retval	NS_guest context pointer 
  */
-.macro GET_NS_WORLD_CONTEXT
-	mrc p15, 0, r0, c13, c0, 4		@ Read PL1 only thread ID reg
-	add r0, r0, #_ASM_ARCH_REGS_OFFSET	@ Add offset
+.macro GET_NS_WORLD_CONTEXT reg
+	ldr \reg, =NS_Guest
+	add \reg, \reg, #_ASM_ARCH_REGS_OFFSET	@ Add offset
 .endm
 
 /**
@@ -103,15 +103,13 @@
  *
  * @retval	 
  */
-.macro WORLD_CONTEXT_SAVE
-	mov	r4, r0
-	pop	{r0 - r3}
-	stmia	r4, {r0 - r3}
-	mov	r3, r4
-	add	r4, r4, #_ASM_R4_OFFSET
-	mov	r0, r4
-	pop	{r4, lr}
-	stmia	r0!, {r4-r12}
+
+.macro NSWORLD_CONTEXT_SAVE
+	push {lr}
+	GET_NS_WORLD_CONTEXT lr
+	stmia lr!, {r0-r12}
+	mov r0, lr
+	pop {lr}
 	mrs	r1, spsr
 	stmia	r0!, {r1, lr}
 	/* Save SVC */
@@ -144,40 +142,39 @@
  *
  * @retval	 
  */
-.macro WORLD_CONTEXT_RESTORE
-	mov	r4, r0
-	ldmia 	r4!, {r0 - r3}
-	push 	{r0, r1}
-	mov 	r0, r4
-	ldmia	r0!, {r4 - r12}
+.macro NSWORLD_CONTEXT_RESTORE
+	GET_NS_WORLD_CONTEXT lr
+	ldmia 	lr!, {r0-r12}
+	push    {r0,r1}
+	mov		r0, lr
 	ldmia	r0!, {r1, lr}
 	msr	spsr_cxsf, r1
 	/* Restore SVC */
 	cps 	#SUPERVISOR_MODE
-	ldmia   r0!, {r1, r13, lr}
+	ldmia   r0!, {r1, sp, lr}
 	msr 	spsr_cxsf, r1
 	/* Restore SYS */
 	cps 	#SYSTEM_MODE
-	ldmia   r0!, {r1,r13, lr}
+	ldmia   r0!, {r1, sp, lr}
 	msr 	spsr_cxsf, r1
 	/* Restore ABORT */
 	cps 	#ABORT_MODE
-	ldmia	r0!, {r1, r13, lr}
+	ldmia	r0!, {r1, sp, lr}
 	msr	spsr_cxsf, r1
 	/* Restore UNDEF */
 	cps 	#UNDEFINED_MODE
-	ldmia	r0!, {r1, r13, lr}
+	ldmia	r0!, {r1, sp, lr}
 	msr	spsr_cxsf, r1
 	/* Restore IRQ */
 	cps 	#IRQ_MODE
-	ldmia	r0!, {r1, r13, lr}
+	ldmia	r0!, {r1, sp, lr}
 	msr	spsr_cxsf, r1
 	cps 	#MONITOR_MODE
 	pop	{r0, r1}
 .endm
 
 /**
- * Exception return emulation (macro)
+ * Exception return emulation (macro)	
  *
  * @param
  *
@@ -267,46 +264,43 @@ _mon_smc_handler:
 	/** Monitor - FIQ handler */
 _mon_fiq_handler:
 	sub	lr, lr, #4			@ Adjust LR
-	push	{r4, lr} 
-	push	{r0 - r3}
-	/* ACK FIQ */
-	@ mrc 	p15,4,r0,c15,c0,0		@ Read Periph Base Addr
-	@ add 	r0,r0, #0x0100			@ Add GIC interface offset (A9)
-	@ ldr 	r1,[r0,#_ASM_GIC_INT_ID]	@ Get interrupt ID
-	@ ldr 	r2,=interrupt
-	@ str 	r1,[r2]
-	@ ldr 	r0,[r0,#0x0C]			@ ACK FIQ
-	/* Save NS context */
+
 	SCR_NS_CLEAR				@ Disable NS bit and route FIQs in mon
-	GET_NS_WORLD_CONTEXT
-	WORLD_CONTEXT_SAVE
-	/* Handling FIQ */
-	@ ldr 	r2,=interrupt
-	@ ldr 	r0,[r2]
-	@ //bl 	ttc_interrupt_clear		/* FIXME - supposing always ttc_isr */
-	@ bl 	fiq_handler			/* FIXME - supposing always ttc_isr */
-	@ ldr 	r2,=interrupt
-	@ ldr 	r0,[r2]
-	@ ldr 	r1,=0x00
-	@ bl 	interrupt_clear
-	/* Restore FIQ state */
-	pop 	{r1-r2}				@ Pop SPSR_FIQ and LR_FIQ
-	mov 	r0, sp				@ Update stack pointer
-	cps 	#FIQ_MODE
-	msr 	spsr,r1
-	mov 	lr,r2
-	ldmfd 	r0, {r8-r13}			@ Restore all banked FIQ regs (R8-R14)
-	add 	r0,r0,#(6*4)			@ Update stack pointer
-	/* Get back to MON */
-	cps 	#MONITOR_MODE
-	mov 	sp,r0	
-	/* Go S world */
-	pop 	{r0-r1}
-	msr 	spsr,r0
-	mov 	lr,r1
-	ldmfd 	sp, {r0-r14}^
-	add 	sp,sp,#(15*4)
-	movs	pc,lr				@ Return from exception (MON -> S_SVC)
+
+	NSWORLD_CONTEXT_SAVE
+
+	mov r0, sp
+
+	cps #FIQ_MODE
+	ldmfd    r0!, {r1, sp, lr}
+	msr		spsr, r1
+	ldmfd 	r0!, {r8-r12}
+
+	cps #IRQ_MODE
+	ldmfd   r0!, {r1, sp, lr}
+	msr	 	spsr, r1
+
+	cps #UNDEFINED_MODE
+	ldmfd   r0!, {r1, sp, lr}
+	msr	 	spsr, r1
+
+	cps #ABORT_MODE
+	ldmfd   r0!, {r1, sp, lr}
+	msr	 	spsr, r1
+
+	cps #SYSTEM_MODE
+	ldmfd   r0!, {r1, sp, lr}
+	msr	 	spsr, r1
+
+	cps #SUPERVISOR_MODE
+	ldmfd   r0!, {r1, sp, lr}	
+	msr	 	spsr, r1
+
+	cps #MONITOR_MODE
+	mov sp, r0
+	pop {r0-r12}
+
+	rfefd sp!
 
 /**
  * 
@@ -328,25 +322,41 @@ board_smc:
  */
 .globl _mon_scheduler
 _mon_scheduler:
-	stmfd 	sp,{r0-r14}^			@ Push SYS regs to monitor stack
-	sub 	sp, sp, #(15*4)      		@ Point stack to the top
-	mrs 	r0,spsr				@ Read the SPSR
-	stmfd	sp, {r0,lr}			@ Push SPSR_mon & lr_mon 
-	sub 	sp, sp, #(2*4)      		@ Update stack pointer
-	/* Save FIQ state */
-	mov	r0, sp				@ Save pointer to monitor stack
+
+	srsfd sp!, #MONITOR_MODE
+	push {r0-r12}
+	mov r0, sp
+
+	cps #SUPERVISOR_MODE
+	mrs	 r1, spsr
+	stmfd    r0!, {r1, sp, lr}
+
+	cps #SYSTEM_MODE
+	mrs	 r1, spsr
+	stmfd   r0!, {r1, sp, lr}
+
+	cps #ABORT_MODE
+	mrs	 r1, spsr
+	stmfd    r0!, {r1, sp, lr}
+
+	cps #UNDEFINED_MODE
+	mrs	 r1, spsr
+	stmfd    r0!, {r1, sp, lr}
+
+	cps #IRQ_MODE
+	mrs	 r1, spsr
+	stmfd    r0!, {r1, sp, lr}
+
 	cps #FIQ_MODE
-	stmfd 	r0,{r8-r13}			@ Save all banked FIQ regs (R8-R14)
-	sub 	r0, r0, #(6*4)      		@ Update stack pointer
-	mrs 	r1,spsr				@ Read the SPSR_FIQ
-	stmfd	r0, {r1,lr}			@ Push SPSR_FIQ and lr_FIQ
-	sub 	r0, r0, #(2*4)      		@ Update stack pointer
-	/* Get back to MON */
+	stmfd r0!, {r8-r12}
+	mrs	 r1, spsr
+	stmfd    r0!, {r1, sp, lr}
+
 	cps #MONITOR_MODE
-	mov 	sp, r0      		
-	/* Restore NS context */
-	GET_NS_WORLD_CONTEXT		
-	WORLD_CONTEXT_RESTORE		
+	mov sp, r0
+
+	NSWORLD_CONTEXT_RESTORE
+
 	/* Set NS bit and go NS world */
 	SCR_NS_SET
 	isb

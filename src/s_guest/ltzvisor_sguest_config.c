@@ -56,12 +56,12 @@ extern uint32_t SGUEST_start, SGUEST_end;
 /** Config structure according to NS Guest */
 struct guest_conf sguest_config = {
 		.gce_name = "FreeRTOS v10",
-		.gce_id = 0,
+		.gce_id = 1,
 		/* No ram disk needed */
 		.gce_trd_init = 0,
 		/* Binary image size */
 		.gce_bin_start = (uint32_t) &SGUEST_start,
 		.gce_bin_end = (uint32_t) &SGUEST_end,
 		/* Load address */
-		.gce_bin_load = 0x00100000,
+		.gce_bin_load = 0x1D000000,
 };

@@ -52,7 +52,7 @@ HYPERVISOR_MINOR_VERSION = 2
 HYPERVISOR_REVISION_VERSION = 1
 
 BOARD:= ZYBO
-S_GUEST:= COUPLED
+S_GUEST:= FREERTOS
 CROSS_COMPILE:= arm-none-eabi-
 
 SHELL:=bash
@@ -154,8 +154,9 @@ ifeq ($(S_GUEST), COUPLED)
 	INC_DIRS+=$(src_dir)/s_guest/BareApp/portable/inc/
 else
 	s_guest_dirs=$(src_dir)/s_guest
-	include $(s_guest_dirs)/object.mk 
-	objs-y+=$(addprefix $(s_guest_dirs), $(s_guest-objs-y))
+	SRC_DIRS+=$(s_guest_dirs)
+	include $(s_guest_dirs)/objects.mk 
+	objs-y+=$(addprefix $(s_guest_dirs)/, $(s_guest-objs-y))
 	INC_DIRS+=
 endif
 

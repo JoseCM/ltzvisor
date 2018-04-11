@@ -111,6 +111,8 @@ void ltzvisor_schedule(void);
  */
 uint32_t ltzvisor_nsguest_create( struct guest_conf *g );
 
+uint32_t ltzvisor_sguest_create( struct guest_conf *g );
+
 /**
  * LTZVisor NS_guest restart
  *

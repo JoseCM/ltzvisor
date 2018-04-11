@@ -83,6 +83,8 @@ uint32_t ltzvisor_hw_init(void){
 	interrupt_security_configall();
 	interrupt_security_config(UART_1_INTERRUPT,Int_NS);
 	interrupt_security_config(TTC0_TTCx_1_INTERRUPT,Int_S);
+	interrupt_security_config(27,Int_S); //GLOBAL TIMER INTERRUPT
+	interrupt_security_config(0,Int_S); //SGI Interrupt for yield
 	printk("      * GIC security - OK  \n\t");
 
 	/** Initialize Platform-specific */

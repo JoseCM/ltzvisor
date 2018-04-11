@@ -92,28 +92,7 @@ __setup_CPU:
 
 	/** Setup Stacks for all CPU modes */
 __setup_stacks:
-	/* Get CPU id*/
-	bl	get_cpu_id
 	/* FIQ mode */
-	msr	cpsr_c,#(FIQ_MODE | IRQ_BIT | FIQ_BIT)		@ Change CPSR to Fiq MODE and disable FIQ and IRQ
-	ldr	r1,=_fiq_stack				
-	add	r1, r1, r0, lsl #STACK_SIZE_SHIFT	
-	add	sp, r1, #STACK_SIZE			
-	/* ABORT mode */
-	msr	cpsr_c,#(ABORT_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to Abort MODE and disable FIQ and IRQ 
-	ldr	r1,=_abort_stack				
-	add	r1, r1, r0, lsl #STACK_SIZE_SHIFT		
-	add	sp, r1, #STACK_SIZE				
-	/* UNDEFINED mode */
-	msr	cpsr_c,#(UNDEFINED_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to Undefined MODE and disable FIQ and IRQ
-	ldr	r1,=_undefined_stack				
-	add	r1, r1, r0, lsl #STACK_SIZE_SHIFT		
-	add	sp, r1, #STACK_SIZE				
-	/* SYSTEM mode */
-	msr	cpsr_c,#(SYSTEM_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to System MODE and disable FIQ and IRQ interrupts
-	ldr	r1,=_user_stack
-	add	r1, r1, r0, lsl #STACK_SIZE_SHIFT
-	add	sp, r1, #STACK_SIZE
 	/* MONITOR mode */
 	msr	cpsr_c,#(MONITOR_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to Monitor MODE and disable only IRQ interrupts
 	ldr	r1,=_monitor_stack				

@@ -52,25 +52,7 @@
 #include <types.h>
 #include <cpu_defines.h>
 
-/** IRQ stack allocation */
-extern uint32_t _irq_stack[STACK_SIZE/4];
-
-/** FIQ stack allocation */
-extern uint32_t _fiq_stack[STACK_SIZE/4];
-
-/** ABORT stack allocation */
-extern uint32_t _abort_stack[STACK_SIZE/4];
-
-/** UNDEF stack allocation */
-extern uint32_t _undefined_stack[STACK_SIZE/4];
-
-/** SYS stack allocation */
-extern uint32_t _user_stack[(STACK_SIZE)/4];
-
 /** MON stack allocation */
 extern uint32_t _monitor_stack[STACK_SIZE/4];
-
-/** SVC stack allocation */
-extern uint32_t _supervisor_stack[STACK_SIZE/4];
 
 #endif /* __ARMV7_CPU_STACK_H */

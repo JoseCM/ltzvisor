@@ -48,24 +48,5 @@
 
 #include <cpu_stack.h>
 
-/** IRQ stack allocation (4-bit alligned) */
-uint32_t _irq_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
-/** FIQ stack allocation (4-bit alligned) */
-uint32_t _fiq_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
-/** ABORT stack allocation (4-bit alligned) */
-uint32_t _abort_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
-/** UNDEF stack allocation (4-bit alligned) */
-uint32_t _undefined_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
-/** SYS stack allocation (4-bit alligned) */
-uint32_t _user_stack[(STACK_SIZE)/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
 /** MON stack allocation (4-bit alligned) */
 uint32_t _monitor_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
-/** SVC stack allocation (4-bit alligned) */
-uint32_t _supervisor_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
-
