@@ -91,6 +91,7 @@ void ltzvisor_kickoff(void){
 
 	dCache_clean();
 	cachel2_clean();
+	mmu_tlb_invalidate();
 
 	/** Secure guest entry point */
 	_start();
@@ -163,8 +164,8 @@ uint32_t ltzvisor_nsguest_create( struct guest_conf *g )
 
 	while(num_pages){
 
-		if(lma & COLOR_MASK != NONSECURE_COLOR){
-			lma = (lma + COLOR_SIZE) & (COLOR_SIZE-1);
+		if((lma & COLOR_MASK) != NONSECURE_COLOR){
+			lma = (lma + COLOR_SIZE) & ~(COLOR_SIZE-1);
 			l1index = (lma & PAGE_L1_MASK) / PAGE_L1_SIZE;
 		}
 
@@ -222,8 +223,8 @@ uint32_t ltzvisor_sguest_create( struct guest_conf *g )
 
 	while(num_pages){
 
-		if(lma & COLOR_MASK != SECURE_COLOR){
-			lma = (lma + COLOR_SIZE) & (COLOR_SIZE-1);
+		if((lma & COLOR_MASK) != SECURE_COLOR){
+			lma = (lma + COLOR_SIZE) & ~(COLOR_SIZE-1);
 			l1index = (lma & PAGE_L1_MASK) / PAGE_L1_SIZE;
 		}
 

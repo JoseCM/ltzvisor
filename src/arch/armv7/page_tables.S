@@ -48,6 +48,7 @@
 
 /* Translation table first-level descriptor formats */
 .set S_NS,				(1 << 19)	// Non-secure bit
+.set S_SUPER,			(1 << 18)
 .set S_NG,				(1 << 17)	// Not global bit
 .set S_S,      			(1 << 16)	// Shareable bit
 .set S_AP2,         	(1 << 15)	// Access Permissions bit2 (See VMSAv7 MMU access permissions)
@@ -64,8 +65,8 @@
 .set S_PXN,	 			(1 << 0)	// Privileged execute-never bit
 
 
-.set S_KERNEL,				(S_AP1 |S_AP0 | IS_A_SECTION | S_TEX2 | S_TEX0 | S_B) 
-.set S_DEVICE_SHARED,		( S_B | S_AP1 |S_AP0 | IS_A_SECTION )
+.set S_KERNEL,				(S_AP1 |S_AP0 | IS_A_SECTION | S_TEX2 | S_TEX0 | S_B | S_SUPER)
+.set S_DEVICE_SHARED,		( S_B | S_AP1 |S_AP0 | IS_A_SECTION | S_SUPER)
 
 
 .data
