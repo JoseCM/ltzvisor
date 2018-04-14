@@ -48,7 +48,7 @@
  * (#) $id: ltzvisor_nsguest.S 05-04-2018 j_martins (modified)$
 */
 
-.section nsguest_image, "a"
+.section .nsguest_image, "a"
 
 .global NSGUEST_start
 .global NSGUEST_end

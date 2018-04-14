@@ -51,8 +51,8 @@
 #define  NSACR_REG_VAL		0x60C00
 #define  CPACR_REG_VAL		0xF00000
 
-#define	CACHE_LEVEL1_SET	1
-#define	CACHE_LEVEL2_SET	0
+#define	CACHE_LEVEL1_SET	0
+#define	CACHE_LEVEL2_SET	1
 
 /*	
  * LEVEL 1 Configuration 

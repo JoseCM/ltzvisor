@@ -64,8 +64,8 @@ uint32_t board_init(void){
 	write32( (void *)TZ_OCM_RAM0, 0xffffffff);
 	write32( (void *)TZ_OCM_RAM1, 0xffffffff);
 	write32( (void *)TZ_OCM, 0xffffffff);
-	/* Handling DDR memory security (first 14segments NS)l */
-	write32( (void *)TZ_DDR_RAM, 0x0000007f);
+	/* Handling DDR memory security segments 1 to 8 (8 * 64 MB) as non-secure */
+	write32( (void *)TZ_DDR_RAM, 0x000001fe);
 	printk("      * Memory security - OK  \n\t");
 
 	/** Handling devices security */

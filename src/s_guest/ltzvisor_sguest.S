@@ -49,7 +49,7 @@
  
 */
 
-.section sguest_image, "a"
+.section .sguest_image, "a"
 
 .global SGUEST_start
 .global SGUEST_end
