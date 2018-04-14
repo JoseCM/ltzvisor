@@ -6,14 +6,25 @@ ENTRY(_reset_handler)
 
 MEMORY
 {
-	OCM (rwx): ORIGIN = 0x00000000, LENGTH = 0x00030000 				
-	DDR_NS  (rwx)  : ORIGIN = 0x00100000, LENGTH = 0x1BEFFFFF
-	DDR_S  (rwx)  : ORIGIN = 0x1C000000, LENGTH = 0x03F00000  	
+	OCM (rwx): ORIGIN = 0x00000000, LENGTH = 0x00030000 	
+	DDR_S  (rwx)  : ORIGIN = 0x100000	, LENGTH = 0x3F00000	
+	DDR_SGUEST  (rwx)  : ORIGIN = 0x4000000, LENGTH = 0xBF00000	
+	DDR_S_TABLE (rwx) : ORIGIN = 0xFF00000, LENGTH = 0x100000			
+	DDR_NSGUEST  (rwx)  : ORIGIN = 0x10000000, LENGTH = 0xFF00000
+	DDR_NS_TABLE (rwx) : ORIGIN = 0x1FF00000, LENGTH = 0x100000
 }
 
 
 SECTIONS
 {
+	.nspage_table : {
+		*(.nspage_table)
+	} > DDR_NS_TABLE
+
+	.spage_table : {
+		*(.spage_table)
+	} > DDR_S_TABLE
+
 	_code_begin = .;
 	
 	.startup :{
@@ -57,5 +68,10 @@ SECTIONS
 		HeapLimit = .;
 	}  > DDR_S 
 	_SW_CODE_END = .;
+
+	.guest_bins : {
+		*(.nsguest_image)
+		*(.sguest_image)
+	} > DDR_S
  }
 

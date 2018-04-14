@@ -49,6 +49,7 @@
 */
 
 #include <ltzvisor_api.h>
+#include <page_tables.h>
 
 /** Main is part of the secure VM */
 #ifdef CONFIG_COUPLED
@@ -87,6 +88,9 @@ void ltzvisor_kickoff(void){
 
 	/** Exit from Monitor mode */
 	LTZVISOR_MON_EXIT();
+
+	dCache_clean();
+	cachel2_clean();
 
 	/** Secure guest entry point */
 	_start();
@@ -149,14 +153,43 @@ uint32_t ltzvisor_nsguest_create( struct guest_conf *g )
 	printk("      * NS_Guest gce_bin_load: 0x%x \n\t", g->gce_bin_load);
 	printk("      * NS_Guest gce_bin_start: 0x%x \n\t", g->gce_bin_start);
 	printk("      * NS_Guest gce_bin_end: 0x%x \n\t", g->gce_bin_end);
-	memcpy((uint32_t *)g->gce_bin_load,(uint32_t *)g->gce_bin_start,(g->gce_bin_end - g->gce_bin_start));
-	if(g->gce_trd_init) {
-		memcpy((uint32_t *)g->gce_trd_load,(uint32_t *)g->gce_trd_start,(g->gce_trd_end - g->gce_trd_start));
+
+	uint32_t num_pages = 256; //(g->gce_bin_end - g->gce_bin_start) / PAGE_L2_SIZE + (((g->gce_bin_end - g->gce_bin_start) % PAGE_L2_SIZE) ? 1 : 0); 
+	uint32_t bin = g->gce_bin_start;
+	uint32_t lma = g->gce_bin_load; //tem que tar alinhado aos 4k; e dentro da memoria do gajo
+	uint32_t l1index = (lma  & PAGE_L1_MASK) / PAGE_L1_SIZE;
+	uint32_t l2index_0 = 0;
+	uint32_t l2index_1 = 0;
+
+	while(num_pages){
+
+		if(lma & COLOR_MASK != NONSECURE_COLOR){
+			lma = (lma + COLOR_SIZE) & (COLOR_SIZE-1);
+			l1index = (lma & PAGE_L1_MASK) / PAGE_L1_SIZE;
+		}
+
+		if(l2index_1 == 0)
+			ns_main_page_table[l1index] = ((uint32_t) &(ns_secondary_page_table[l2index_0][0]) & PAGE_L1_MASK) | PAGE_L1_POINTER_FLAGS; 
+		ns_secondary_page_table[l2index_0][l2index_1++] = (lma & PAGE_L2_MASK) | PAGE_L2_FLAGS;
+
+		memcpy((void*)lma, (void*)bin, PAGE_L2_SIZE);
+		bin += PAGE_L2_SIZE;
+		lma += PAGE_L2_SIZE;
+
+		
+		if(l2index_1 == PAGE_TABLE_L2_SIZE/sizeof(uint32_t)){
+			l2index_1 = 0;
+			l2index_0++;
+			l1index++;
+		}
+
+		num_pages--;
+
 	}
 	printk("      * NS_Guest load - OK  \n\t");
 
 	/* Get NS_Guest ready to run */
-	cp15_restore(&NS_Guest.core.vcpu_regs_cp15);
+	//cp15_restore(&NS_Guest.core.vcpu_regs_cp15);
 	set_guest_context( (uint32_t)&NS_Guest);
 	printk("      * NS_Guest ready to run - OK  \n\t");
 
@@ -174,11 +207,45 @@ uint32_t ltzvisor_sguest_create( struct guest_conf *g )
 	printk("      * S_Guest gce_bin_load: 0x%x \n\t", g->gce_bin_load);
 	printk("      * S_Guest gce_bin_start: 0x%x \n\t", g->gce_bin_start);
 	printk("      * S_Guest gce_bin_end: 0x%x \n\t", g->gce_bin_end);
-	memcpy((uint32_t *)g->gce_bin_load,(uint32_t *)g->gce_bin_start,(g->gce_bin_end - g->gce_bin_start));
-	if(g->gce_trd_init) {
-		memcpy((uint32_t *)g->gce_trd_load,(uint32_t *)g->gce_trd_start,(g->gce_trd_end - g->gce_trd_start));
+
+	// memcpy((uint32_t *)g->gce_bin_load,(uint32_t *)g->gce_bin_start,(g->gce_bin_end - g->gce_bin_start));
+	// if(g->gce_trd_init) {
+	// 	memcpy((uint32_t *)g->gce_trd_load,(uint32_t *)g->gce_trd_start,(g->gce_trd_end - g->gce_trd_start));
+	// }
+
+	uint32_t num_pages = 256; //(g->gce_bin_end - g->gce_bin_start) / PAGE_L2_SIZE + (((g->gce_bin_end - g->gce_bin_start) % PAGE_L2_SIZE) ? 1 : 0); 
+	uint32_t bin = g->gce_bin_start;
+	uint32_t lma = g->gce_bin_load; //tem que tar alinhado aos 4k; e dentro da memoria do gajo
+	uint32_t l1index = (lma  & PAGE_L1_MASK) / PAGE_L1_SIZE;
+	uint32_t l2index_0 = 0;
+	uint32_t l2index_1 = 0;
+
+	while(num_pages){
+
+		if(lma & COLOR_MASK != SECURE_COLOR){
+			lma = (lma + COLOR_SIZE) & (COLOR_SIZE-1);
+			l1index = (lma & PAGE_L1_MASK) / PAGE_L1_SIZE;
+		}
+
+		if(l2index_1 == 0)
+			s_main_page_table[l1index] = ((uint32_t) &(s_secondary_page_table[l2index_0][0]) & PAGE_L1_MASK) | PAGE_L1_POINTER_FLAGS; 
+		s_secondary_page_table[l2index_0][l2index_1++] = (lma & PAGE_L2_MASK) | PAGE_L2_FLAGS;
+
+		memcpy((void*)lma, (void*)bin, PAGE_L2_SIZE);
+		bin += PAGE_L2_SIZE;
+		lma += PAGE_L2_SIZE;
+
+		
+		if(l2index_1 == PAGE_TABLE_L2_SIZE/sizeof(uint32_t)){
+			l2index_1 = 0;
+			l2index_0++;
+			l1index++;
+		}
+
+		num_pages--;
+
 	}
-	printk("      * NS_Guest load - OK  \n\t");
+	printk("      * S_Guest load - OK  \n\t");
 
 	return TRUE;
 }

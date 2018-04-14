@@ -195,7 +195,7 @@ ifeq ($(CONFIG_NEON_SUPPORT), y)
 endif
 cflags+=$(cppflags) $(TARGET_CCFLAGS)
 asflags:= $(cflags)
-ldflags:= -nostdlib -nostartfiles -T$(LD_SCRIPT) -g
+ldflags:= -Wl,-build-id=none -nostdlib -nostartfiles -T$(LD_SCRIPT) -g
 
 # Default rule "make"
 .PHONY: all
