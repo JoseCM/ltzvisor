@@ -355,8 +355,9 @@ _mon_scheduler:
 	cps #MONITOR_MODE
 	mov sp, r0
 
+.globl ns_enter
+ns_enter:
 	NSWORLD_CONTEXT_RESTORE
-
 	/* Set NS bit and go NS world */
 	SCR_NS_SET
 	isb

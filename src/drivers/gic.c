@@ -208,7 +208,6 @@ uint32_t interrupt_distributor_init(void){
 
 	/** Reset interrupt targets */
 	for (i = 0; i < GIC_TARGET_REGISTERS; i++){
-
 		int_dist->ICDIPTRx[i] = 0x00000000;
 	}
 
@@ -404,6 +403,9 @@ void interrupt_security_configall(void){
 	for(num_regs=0; num_regs < GIC_NUM_REGISTERS; num_regs++){
 		int_dist->ICDISRx[num_regs] = 0xFFFFFFFF;
 		int_dist->ICDIPRx[num_regs] = 0x80808080;
+#ifdef CONFIG_AMP
+		int_dist->ICDIPTRx[num_regs] = 0x01010101;
+#endif
 	}
 
 }
@@ -418,21 +420,33 @@ void interrupt_security_configall(void){
  */
 void interrupt_security_config(uint32_t interrupt, IntSecurity_TypeDef security){
 
-	uint32_t word, temp;
+	uint32_t word, index;
 
 	/* Calculate interrupt position in register */
 	word = interrupt / 32;
-	interrupt %= 32;
-	interrupt = 1 << interrupt;
+	index = interrupt % 32;
+	index = 1 << index;
 
-	temp = int_dist->ICDISRx[word];
 	if (security == Int_NS){
-		temp |= interrupt;
+		int_dist->ICDISRx[word] |= index;
 	}
 	else{
-		temp &= ~interrupt;
+		int_dist->ICDISRx[word] &= ~index;
 	}
-	int_dist->ICDISRx[word] = temp;
+
+#ifdef CONFIG_AMP
+	uint32_t word2, index2;
+	word2 = interrupt / 4;
+	index2 = (interrupt % 4)*8;
+	int_dist->ICDIPTRx[word2] &= ~(0xFF << index2);
+	if (security == Int_NS){
+		int_dist->ICDIPTRx[word2] |= (0x01 << index2);
+	}
+	else{
+		int_dist->ICDIPTRx[word2] |= (0x02 << index2);
+	}
+#endif
+
 }
 
 /**

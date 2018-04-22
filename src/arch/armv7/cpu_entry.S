@@ -56,15 +56,6 @@
 
 .globl _reset_handler
 _reset_handler:
-
-	/** Run CPU0 and stuck other CPUs */
-	bl	get_cpu_id
-	cmp	r0, #0		@ CPU0?
-	bne	__stuck_loop
-
-__start_secure_core:
-
-	/** Set CPU State */
 __setup_CPU:
 	/* Set SCTLR */
 	mrc	p15, 0, r1, c1, c0, 0			@ Read SCTLR 
@@ -78,7 +69,7 @@ __setup_CPU:
 	mcr	p15, 0, r1, c1, c1, 2			@ Write NSACR 
 	/* Non-Route FIQs Monitor */
 	mrc	p15, 0, r1, c1, c1, 0			@ Read SCR 
-	bic  	r1, r1, #SCR_FIQ_BIT			@ Clear FIQ bit (disable route FIQs monitor)
+	bic r1, r1, #SCR_FIQ_BIT			@ Clear FIQ bit (disable route FIQs monitor)
 	mcr	p15, 0, r1, c1, c1, 0			@ Write SCR 
 	/* Set Auxiliary register reset value */
 	mrc	p15, 0, r0, c1, c0, 1			@ Read ACTLR
@@ -92,7 +83,7 @@ __setup_CPU:
 
 	/** Setup Stacks for all CPU modes */
 __setup_stacks:
-	/* FIQ mode */
+	bl get_cpu_id
 	/* MONITOR mode */
 	msr	cpsr_c,#(MONITOR_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to Monitor MODE and disable only IRQ interrupts
 	ldr	r1,=_monitor_stack				
@@ -124,12 +115,19 @@ __init_vmemory:
 	mov 	r1, #0x0				
 	mcr 	p15, 0, r1, c8, c3, 0			@ Invalidate entire unified TLB Inner Shareable
 
-
 	/** Handling VFP and NEON */
 __init_vfp:
 	/* FIX IT */
 	
 
+	bl		get_cpu_id
+	cmp	r0, #1
+#ifdef CONFIG_AMP
+	wfene
+	bne     .
+#else
+	beq		.
+#endif
 	/** Initializing C environment */
 __init_c_env:
 	bl	c_environment_init

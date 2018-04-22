@@ -49,4 +49,4 @@
 #include <cpu_stack.h>
 
 /** MON stack allocation (4-bit alligned) */
-uint32_t _monitor_stack[STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));
+uint32_t _monitor_stack[MAX_CORES][STACK_SIZE/4] __attribute__ ((aligned (4))) __attribute__ ((section (".bss")));

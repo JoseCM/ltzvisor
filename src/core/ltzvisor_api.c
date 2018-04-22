@@ -88,6 +88,10 @@ void ltzvisor_kickoff(void){
 	/** Exit from Monitor mode */
 	LTZVISOR_MON_EXIT();
 
+#ifdef CONFIG_AMP
+	asm("dsb\nisb\nsev\n");
+#endif
+
 	/** Secure guest entry point */
 	_start();
 

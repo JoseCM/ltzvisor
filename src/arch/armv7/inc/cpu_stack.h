@@ -53,6 +53,6 @@
 #include <cpu_defines.h>
 
 /** MON stack allocation */
-extern uint32_t _monitor_stack[STACK_SIZE/4];
+extern uint32_t _monitor_stack[MAX_CORES][STACK_SIZE/4];
 
 #endif /* __ARMV7_CPU_STACK_H */
