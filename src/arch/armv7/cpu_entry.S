@@ -54,6 +54,10 @@
 
 .text
 
+.global core1_ready
+core1_ready:
+	.word 0
+
 .globl _reset_handler
 _reset_handler:
 __setup_CPU:
@@ -121,10 +125,15 @@ __init_vfp:
 	
 
 	bl		get_cpu_id
-	cmp	r0, #1
+	cmp		r0, #1
 #ifdef CONFIG_AMP
-	wfene
-	bne     .
+	beq		__init_c_env
+1:
+	ldr		r0, core1_ready
+	cmp		r0, #1
+	bne		1b
+	bl   	interrupt_interface_init
+	b   	ns_enter
 #else
 	beq		.
 #endif

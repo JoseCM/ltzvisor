@@ -83,13 +83,16 @@ uint32_t ltzvisor_init(void){
  *
  * @retval 
  */
+
+extern uint32_t core1_ready;
+
 void ltzvisor_kickoff(void){
 
 	/** Exit from Monitor mode */
 	LTZVISOR_MON_EXIT();
 
 #ifdef CONFIG_AMP
-	asm("dsb\nisb\nsev\n");
+	core1_ready = 1;
 #endif
 
 	/** Secure guest entry point */

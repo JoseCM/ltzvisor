@@ -237,14 +237,14 @@ uint32_t interrupt_interface_init(void){
 
 	/** Clear the bits of the distributor which are CPU-specific */
 	/* Clear-Pending */
-	int_dist->ICDICPRx[0] = 0xFFFFFFFF;			
-	for (i = 0; i < 8; i++){
-		/* SGI and PPI interrupt priorities */
-		int_dist->ICDIPRx[i] = 0x00000000;
-	}
-	/* SGI and PPI set interrupt configuration */
-	int_dist->ICDICFRx[0] = 0xAAAAAAAA;
-	int_dist->ICDICFRx[1] = 0xAAAAAAAA;
+	// int_dist->ICDICPRx[0] = 0xFFFFFFFF;			
+	// for (i = 0; i < 8; i++){
+	// 	/* SGI and PPI interrupt priorities */
+	// 	int_dist->ICDIPRx[i] = 0x00000000;
+	// }
+	// /* SGI and PPI set interrupt configuration */
+	// int_dist->ICDICFRx[0] = 0xAAAAAAAA;
+	// int_dist->ICDICFRx[1] = 0xAAAAAAAA;
 
 	/** Disable CPU Interface */
 	cpu_inter->ICCICR = 0x00000000;
@@ -402,12 +402,14 @@ void interrupt_security_configall(void){
 	/* Configure all global interrupts as NS Interrupts */
 	for(num_regs=0; num_regs < GIC_NUM_REGISTERS; num_regs++){
 		int_dist->ICDISRx[num_regs] = 0xFFFFFFFF;
+	}
+
+	for(num_regs=0; num_regs < NO_OF_INTERRUPTS_IMPLEMENTED/4; num_regs++){
 		int_dist->ICDIPRx[num_regs] = 0x80808080;
 #ifdef CONFIG_AMP
 		int_dist->ICDIPTRx[num_regs] = 0x01010101;
 #endif
 	}
-
 }
 
 /**
@@ -448,6 +450,7 @@ void interrupt_security_config(uint32_t interrupt, IntSecurity_TypeDef security)
 #endif
 
 }
+
 
 /**
  * Get number of current interrupt
