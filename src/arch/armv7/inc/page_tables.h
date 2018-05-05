@@ -19,11 +19,12 @@
 #define PAGE_L1_MEMORY_FLAGS        0x45C06
 #define PAGE_L1_SHAREDDEVICE_FLAGS  0x40c06
 #define PAGE_L2_FLAGS               0x176
-   
-#define COLOR_SIZE             0x4000
-#define COLOR_MASK             0x4000
 
-#define COLOR_LSB              14
+#define COLOR_LSB              15
+   
+#define COLOR_SIZE             (0x1 << COLOR_LSB)
+#define COLOR_MASK             (0x1 << COLOR_LSB)
+
 #define NONSECURE_COLOR        (0x1 << COLOR_LSB)
 #define SECURE_COLOR           (0x0 << COLOR_LSB)
 
