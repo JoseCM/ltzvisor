@@ -73,13 +73,17 @@ __setup_CPU:
 	mcr	p15, 0, r1, c1, c1, 2			@ Write NSACR 
 	/* Non-Route FIQs Monitor */
 	mrc	p15, 0, r1, c1, c1, 0			@ Read SCR 
-	bic r1, r1, #SCR_FIQ_BIT			@ Clear FIQ bit (disable route FIQs monitor)
+	bic  	r1, r1, #SCR_FIQ_BIT			@ Clear FIQ bit (disable route FIQs monitor)
 	mcr	p15, 0, r1, c1, c1, 0			@ Write SCR 
 	/* Set Auxiliary register reset value */
 	mrc	p15, 0, r0, c1, c0, 1			@ Read ACTLR
-	ldr  	r0, =0x00				@ Clear registers
+	ldr  	r0, =(1 << 6)					@ ENable SMP mode for cohenrency
 	mcr	p15, 0, r0, c1, c0, 1			@ Write ACTLR
-
+	@ /* Enable SCU */
+	ldr		r0, =0xF8F00000
+	ldr		r1, [r0]
+	orr 	r1, #0x1
+	str		r1, [r0]
 	/** Set monitor vector table (VBAR) */
 	ldr	r0, =_monitor_vector_table		@ Read the Monitor Vector Table's Base Address
 	mcr	p15, 0, r0, c12, c0, 1			@ Write MVBAR
@@ -97,33 +101,67 @@ __setup_stacks:
 
 	/** Handling cache and MMU subsystems */
 __init_vmemory:	
-	/* Disable MMU */
-	mrc 	p15, 0, r1, c1, c0, 0			@ Read SCTLR register
-	bic 	r1, r1, #SCTLR_MMU_BIT			@ Clear M bit (disable MMU)
-	mcr 	p15, 0, r1, c1, c0, 0			@ Write SCTLR register
-	/* Disable L1 Caches */
-	mrc 	p15, 0, r1, c1, c0, 0			@ Read SCTLR register
-	bic 	r1, r1, #SCTLR_DCACHE_BIT		@ Clear C bit (disable D-Cache)
-	bic 	r1, r1, #SCTLR_ICACHE_BIT		@ Clear I bit (disable I-Cache)
-	mcr 	p15, 0, r1, c1, c0, 0			@ Write SCTLR register
-	/* Invalidate Instruction cache */
-	mov 	r1,#0					
-	mcr 	p15, 0, r1, c7, c5, 0			@ Instruction Cache Invalidate All
-	/* Invalidate Data caches */
-	@mov	r0, #1					
-	@bl	data_cache_clean_invalidate_all		@ Invalidate data cache
+
+	bl    	mmu_disable
+	bl		dCache_disable
+	bl		iCache_disable
+
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_init
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_disable
+
+	bl		mmu_tlb_invalidate
+	bl		dCache_invalidate
+	bl		iCache_invalidate
+	
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_invalidate
+
 	/* Invalidate Branch Predictor arrays */
 	mov 	r1,#0					
 	mcr	p15, 0, r1, c7, c5, 6			@ Invalidate BP
-	/* Invalidate TLBs */
-	mov 	r1, #0x0				
-	mcr 	p15, 0, r1, c8, c3, 0			@ Invalidate entire unified TLB Inner Shareable
+
+	ldr		r0, =s_main_page_table
+	bl		mmu_ttbr0_set
+
+	ldr		r0, =0x55555555
+	bl 		mmu_set_domain_access
+
+	mrc     p15, 0, r0, c1, c1, 0	
+	orr		r0, r0, #SCR_NS_BIT	
+	mcr     p15, 0, r0, c1, c1, 0	
+
+	ldr		r0, =ns_main_page_table
+	bl		mmu_ttbr0_set
+
+	ldr		r0, =0x55555555
+	bl 		mmu_set_domain_access
+
+	bl		iCache_enable
+	bl		dCache_enable
+	bl		mmu_enable
+
+	mrc     p15, 0, r0, c1, c1, 0	
+	bic		r0, r0, #SCR_NS_BIT		
+	mcr     p15, 0, r0, c1, c1, 0	
+
+	bl		iCache_enable
+	bl		dCache_enable
+
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_enable
+	
+	bl		mmu_enable
 
 	/** Handling VFP and NEON */
 __init_vfp:
 	/* FIX IT */
 	
-
 	bl		get_cpu_id
 	cmp		r0, #1
 #ifdef CONFIG_AMP
@@ -133,6 +171,7 @@ __init_vfp:
 	cmp		r0, #1
 	bne		1b
 	bl   	interrupt_interface_init
+	bl		mmu_tlb_invalidate
 	b   	ns_enter
 #else
 	beq		.

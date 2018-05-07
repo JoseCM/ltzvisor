@@ -6,6 +6,7 @@
  * Authors:
  *  Sandro Pinto <sandro@tzvisor.org>
  *  Jorge Pereira <jorgepereira89@gmail.com>
+ *	Jose Martins <josemartins90@gmail.com>
  *
  * This file is part of LTZVisor.
  *
@@ -43,201 +44,179 @@
  * This file contains the ARMv7-A cache driver.
  * 
  * (#) $id: cpu_cache.S 04-05-2015 s_pinto & j_pereira $
+ * (#) $id: cpu_cache.S 11-04-2018 j_martins $
 */
 
 #include <cpu_defines.h>
 #include <platform_asm.h>
 
-/**
- * L1 (I/D)-cache enable
- *
- * @param  
- *
- * @retval 
- */
-.global enable_l1_cache
-.func enable_l1_cache
-enable_l1_cache:
-	@ void enable_l1_cache(void)
-	push 	{r0-r12, lr}
+/***************** Data Cache enable (L1) *****************/
+
+.global dCache_enable
+.func dCache_enable
+dCache_enable:
+	push	{r0}
+	dmb
 	mrc	p15, 0, r0, c1, c0, 0
-	orr 	r1, r1, #SCTLR_ICACHE_BIT
-	orr 	r1, r1, #SCTLR_DCACHE_BIT
-	mcr 	p15, 0, r1, c1, c0, 0
-	isb
-	pop	{r0-r12, lr}
-	bx 	lr
-.endfunc
+	orr 	r0, r0, #SCTLR_DCACHE_BIT
+	mcr 	p15, 0, r0, c1, c0, 0
+	dsb
+	pop	{r0}
+  	bx      lr
 
-/**
- * L1 I-cache invalidate all entries
- *
- * @param  
- *
- * @retval 
- */
-.global icache_inv_all
-.func icache_inv_all
-	@ void icache_inv_all(void);
-icache_inv_all:
-	@ void icache_inv_all(void)
-	push 	{r0-r12, lr}
-	mov	r0, #0
-	mcr 	p15, 0, r0, c7, c5, 0
-	isb
-	pop	{r0-r12, lr}
-	bx	lr
-.endfunc
+.endfunc	@ dCache_enable
 
-/**
- * D-Cache clean/invalidate way (auxiliar)
- *
- * @param	r0 - Cache level
- * 		r1 - Log2 Line Length
- *		r2 - Way 
- * 		r3 - LEADING ZEROS of WAY 
- * 		r4 - Set
- * 		r5 - clean or invalidate
- *
- * @retval 
- */
-data_cache_clean_invalidate_set_way:
+
+
+/***************** Data Cache disable (L1) ****************/
+.global dCache_disable
+.func dCache_disable
+dCache_disable:
+	push	{r0}
+	dmb
+	mrc	p15, 0, r0, c1, c0, 0
+	bic 	r0, r0, #SCTLR_DCACHE_BIT
+	mcr 	p15, 0, r0, c1, c0, 0
+	dsb
+	pop	{r0}
+  	bx      lr
+
+.endfunc	@ dCache_disable
+
+
+/************** Data Cache invalidate (L1) ***************/
+/* 	r0 - Cache level
+	r1 - Log2 Line Length
+	r2 - Way
+	r3 - LEADING ZEROS of WAY
+	r4 - Set
+*/
+
+dCache_invalidate_setWay:
 	mov	r9, r2
 2:
-	/*
-	val = (cache level << 1) | (set << log2 LINE_LEN) |  (way << LEADING_ZEROS_OF WAY)
-	*/
+	// val = (cache level << 1) | (set << log2 LINE_LEN) |  (way << LEADING_ZEROS_OF WAY)
 	orr	r11, r0, r9, lsl r3
 	orr	r11, r11, r4, lsl r1
-	cmp	r5, #1
-	mcreq 	p15, 0, r11, c7, c6, 2
-	mcrne 	p15, 0, r11, c7, c14, 2
+	//mcr 	p15, 0, r11, c7, c14, 2		@ DCCISW
+	//mcr 	p15, 0, r11, c7, c10, 2		@ DCCSW
+	mcr 	p15, 0, r11, c7, c6, 2      @ DCISWC
 	subs	r9, r9, #1
 	bge 	2b
 	subs	r4, r4, #1
-	bge 	data_cache_clean_invalidate_set_way
+	bge 	dCache_invalidate_setWay
 	bx	lr
 
-/**
- * D-Cache clean/invalidate all entries
- *
- * @param	r0 - Clean or Invalidate
- *
- * @retval 
- */
-.global data_cache_clean_invalidate_all
-.func data_cache_clean_invalidate_all
-	@ void data_cache_clean_invalidate_all(int invalid_only);
-data_cache_clean_invalidate_all:
+.global dCache_invalidate
+.func dCache_invalidate
+dCache_invalidate:
 	push	{r0-r12, lr}
 	dmb
-	mov	r5, r0
-	ldr	r0, =CACHE_LEVEL1_SET
-	cmp	r0, #1
-	bne	1f
-	/* Level 1 */
-	mov	r0, #0
-	mcr	p15, 2, r0, c0, c0, 0
-	isb
+	// Level 1
+	ldr r0, =CACHE_LEVEL1_SET
 	ldr	r1, =MAX_L1_LINE_LEN
 	ldr	r2, =MAX_L1_CACHE_WAYS
 	clz	r3, r2
 	ldr	r4, =MAX_L1_SETS
-	bl	data_cache_clean_invalidate_set_way
-	/* Level 2 */
-	ldr	r0, =CACHE_LEVEL2_SET
-	cmp	r0, #1
-	bne	1f
-	mov	r0, #2
-	mcr	p15, 2, r0, c0, c0, 0
-	isb
-	ldr	r1, =MAX_L2_LINE_LEN
-	ldr	r2, =MAX_L2_CACHE_WAYS
-	clz	r3, r2
-	ldr	r4, =MAX_L2_SETS
-	bl	data_cache_clean_invalidate_set_way
-1:
-	mov 	r0, #0
-	mcr 	p15, 2, r10, c0, c0, 0
+	bl	dCache_invalidate_setWay
+
+	mov r0, #0
 	dsb
 	isb
 	pop	{r0-r12, lr}
 	bx	lr
-.endfunc
 
-/**
- * TLB flush all entries
- *
- * @param
- *
- * @retval 
- */
-.global flush_all_translation_table_entries
-.func flush_all_translation_table_entries
-	@ void flush_all_translation_table_entries(void);
-flush_all_translation_table_entries:
-	mcr	 p15, 0, r0, c8, c3,  0
-	mcr	 p15, 0, r0, c7, c5,  6  @ Inval. branch predict. array
-	dsb
-	isb
-	mov pc, lr
-.endfunc
+.endfunc	@ dCache_invalidate
 
-/**
- * TLB invalidate by VA_ASID
- *
- * @param
- *
- * @retval 
- */
-.global inv_translation_table_by_va_asid
-.func inv_translation_table_by_va_asid
-	@ void inv_translation_table_by_va_asid(sw_uint va);
-inv_translation_table_by_va_asid:
-	mcr	 p15, 0, r0, c8, c3,  1
-	mcr	 p15, 0, r0, c7, c5,  6  @ Inval. branch predict. array
-	dsb
-	isb
-	mov pc, lr
-.endfunc
+/************** Data Cache Clean (L1) ***************/
+/* 	r0 - Cache level
+	r1 - Log2 Line Length
+	r2 - Way
+	r3 - LEADING ZEROS of WAY
+	r4 - Set
+*/
 
-/**
- * TLB invalidate by ASID
- *
- * @param
- *
- * @retval 
- */
-.global inv_translation_table_by_asid
-.func inv_translation_table_by_asid
-	@ void inv_translation_table_by_asid(sw_uint asid);
-inv_translation_table_by_asid:
-	mcr	 p15, 0, r0, c8, c3,  2
-	mcr	 p15, 0, r0, c7, c5,  6  @ Inval. branch predict. array
-	dsb
-	isb
-	mov pc, lr
-.endfunc
+dCache_clean_setWay:
+	mov	r9, r2
+4:
+	// val = (cache level << 1) | (set << log2 LINE_LEN) |  (way << LEADING_ZEROS_OF WAY)
+	orr	r11, r0, r9, lsl r3
+	orr	r11, r11, r4, lsl r1
+	mcr 	p15, 0, r11, c7, c14, 2		@ DCCISW
+	//mcr 	p15, 0, r11, c7, c10, 2		@ DCCSW
+	//mcr 	p15, 0, r11, c7, c6, 2      @ DCISW
+	subs	r9, r9, #1
+	bge 	4b
+	subs	r4, r4, #1
+	bge 	dCache_clean_setWay
+	bx	lr
 
-/**
- * (I/D)-cache flush
- *
- * @param  
- *
- * @retval 
- */
-.global flush_icache_and_dcache
-.func flush_icache_and_dcache
-	@ void flush_icache_and_dcache(void);
-flush_icache_and_dcache:
+.global dCache_clean
+.func dCache_clean
+dCache_clean:
 	push	{r0-r12, lr}
-	mov 	r0, #0
-	bl  	data_cache_clean_invalidate_all
-	mov 	r0, #0
-	/* Invalidate instruction cache */
-	mcr 	p15, 0, r0, c7, c5, 0
+	dmb
+	// Level 1
+	ldr r0, =CACHE_LEVEL1_SET
+	ldr	r1, =MAX_L1_LINE_LEN
+	ldr	r2, =MAX_L1_CACHE_WAYS
+	clz	r3, r2
+	ldr	r4, =MAX_L1_SETS
+	bl	dCache_clean_setWay
+
+	mov r0, #0
 	dsb
 	isb
 	pop	{r0-r12, lr}
-	mov pc, lr
-.endfunc
+	bx	lr
+
+.endfunc	@ dCache_invalidate
+
+/************* Instruction Cache enable (L1) *************/
+
+.global iCache_enable
+.func iCache_enable
+iCache_enable:
+	push	{r0}
+	dmb
+	mrc		p15, 0, r0, c1, c0, 0
+	orr 	r0, r0, #SCTLR_ICACHE_BIT
+	mcr 	p15, 0, r0, c1, c0, 0
+	isb
+	pop		{r0}
+  	bx      lr
+
+.endfunc	@ iCache_enable
+
+
+
+/************* Instruction Cache disable (L1) ************/
+.global iCache_disable
+.func iCache_disable
+iCache_disable:
+	push	{r0}
+	dmb
+	mrc		p15, 0, r0, c1, c0, 0
+	bic 	r0, r0, #SCTLR_ICACHE_BIT
+	mcr 	p15, 0, r0, c1, c0, 0
+	isb
+	pop		{r0}
+  	bx      lr
+
+.endfunc	@ iCache_disable
+
+
+/********** Instruction Cache invalidate (L1) ************/
+
+.global iCache_invalidate
+.func iCache_invalidate
+iCache_invalidate:
+	push	{r0}
+	dmb
+	mov		r0, #0
+	mcr 	p15, 0, r0, c7, c5, 0		@ ICIALLU (invalidate all)
+	isb
+	pop		{r0}
+  	bx      lr
+
+.endfunc	@ iCache_invalidate

@@ -5,3 +5,5 @@ cpu-objs-y += cpu_stack.o
 cpu-objs-y += cpu_cache.o
 cpu-objs-y += cpu_cp15_switch.o
 cpu-objs-y += cpu_helper.o
+cpu-objs-y += mmu.o
+cpu-objs-y += page_tables.o
