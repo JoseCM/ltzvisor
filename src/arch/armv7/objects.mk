@@ -5,5 +5,5 @@ cpu-objs-y += cpu_stack.o
 cpu-objs-y += cpu_cache.o
 cpu-objs-y += cpu_cp15_switch.o
 cpu-objs-y += cpu_helper.o
-cpu-objs-$(MP_AMP) += cpu_sec_entry.o
-cpu-objs-$(MP_AMP) += cpu_sec_monitor.o
+cpu-objs-y += mmu.o
+cpu-objs-y += page_tables.o
