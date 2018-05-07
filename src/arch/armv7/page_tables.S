@@ -65,7 +65,7 @@
 .set S_PXN,	 			(1 << 0)	// Privileged execute-never bit
 
 
-.set S_KERNEL,			(S_AP1 |S_AP0 | IS_A_SECTION | S_TEX2 | S_TEX0 | S_B | S_SUPER)
+.set S_KERNEL,				(S_AP1 |S_AP0 | IS_A_SECTION | S_TEX2 | S_TEX0 | S_B | S_SUPER | S_S)
 .set S_DEVICE_SHARED,		( S_B | S_AP1 |S_AP0 | IS_A_SECTION | S_SUPER)
 
 

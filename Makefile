@@ -53,6 +53,7 @@ HYPERVISOR_REVISION_VERSION = 1
 
 BOARD:= ZYBO
 S_GUEST:= FREERTOS
+MP_AMP:=y
 CROSS_COMPILE:= arm-none-eabi-
 
 SHELL:=bash
@@ -107,6 +108,12 @@ ifeq ($(S_GUEST), COUPLED)
 	TARGET_CCFLAGS += -DCONFIG_COUPLED=1 
 	TARGET_ASMFLAGS += -DCONFIG_COUPLED=1
 endif
+
+ifeq ($(MP_AMP), y)
+	TARGET_CCFLAGS += -DCONFIG_AMP=1
+	TARGET_ASMFLAGS += -DCONFIG_AMP=1
+endif
+
 
 # TODO: Is this file supposed to be used to override configurations? Should this include be here?
 -include $(CONFIG_FILE)

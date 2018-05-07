@@ -269,10 +269,6 @@ _mon_fiq_handler:
 
 	NSWORLD_CONTEXT_SAVE
 
-	mov		r0, #0
-	mov		r1, #0xF0
-	bl		cachel2_lockdown
-
 	mov r0, sp
 
 	cps #FIQ_MODE
@@ -359,16 +355,13 @@ _mon_scheduler:
 	cps #MONITOR_MODE
 	mov sp, r0
 
-	mov		r0, #0
-	mov		r1, #0x0F
-	bl		cachel2_lockdown
-
+.globl ns_enter
+ns_enter:
 	NSWORLD_CONTEXT_RESTORE
 
 	/* Set NS bit and go NS world */
 	SCR_NS_SET
 	isb
 	dsb	
-
 	movs    pc, lr				@ Return from exception (MON -> NS_SVC)
 

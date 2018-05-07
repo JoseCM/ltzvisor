@@ -54,17 +54,12 @@
 
 .text
 
+.global core1_ready
+core1_ready:
+	.word 0
+
 .globl _reset_handler
 _reset_handler:
-
-	/** Run CPU0 and stuck other CPUs */
-	bl	get_cpu_id
-	cmp	r0, #0		@ CPU0?
-	bne	__stuck_loop
-
-__start_secure_core:
-
-	/** Set CPU State */
 __setup_CPU:
 	/* Set SCTLR */
 	mrc	p15, 0, r1, c1, c0, 0			@ Read SCTLR 
@@ -82,9 +77,13 @@ __setup_CPU:
 	mcr	p15, 0, r1, c1, c1, 0			@ Write SCR 
 	/* Set Auxiliary register reset value */
 	mrc	p15, 0, r0, c1, c0, 1			@ Read ACTLR
-	ldr  	r0, =0x00				@ Clear registers
+	ldr  	r0, =(1 << 6)					@ ENable SMP mode for cohenrency
 	mcr	p15, 0, r0, c1, c0, 1			@ Write ACTLR
-
+	@ /* Enable SCU */
+	ldr		r0, =0xF8F00000
+	ldr		r1, [r0]
+	orr 	r1, #0x1
+	str		r1, [r0]
 	/** Set monitor vector table (VBAR) */
 	ldr	r0, =_monitor_vector_table		@ Read the Monitor Vector Table's Base Address
 	mcr	p15, 0, r0, c12, c0, 1			@ Write MVBAR
@@ -92,6 +91,7 @@ __setup_CPU:
 
 	/** Setup Stacks for all CPU modes */
 __setup_stacks:
+	bl get_cpu_id
 	/* MONITOR mode */
 	msr	cpsr_c,#(MONITOR_MODE | IRQ_BIT | FIQ_BIT)	@ Change CPSR to Monitor MODE and disable only IRQ interrupts
 	ldr	r1,=_monitor_stack				
@@ -105,20 +105,31 @@ __init_vmemory:
 	bl    	mmu_disable
 	bl		dCache_disable
 	bl		iCache_disable
+
+	bl		get_cpu_id
+	cmp		r0, #1
+	bne		1f
 	bl		cachel2_init
-	bl		cachel2_disable
+	bl  	cachel2_disable
 	mov		r0, #0
 	mov		r1, #0xF0
 	bl		cachel2_lockdown
+	mov		r0, #1
+	mov		r1, #0x0F
+	bl		cachel2_lockdown
 
+1:
 	bl		mmu_tlb_invalidate
 	bl		dCache_invalidate
 	bl		iCache_invalidate
-	bl		cachel2_invalidate
+	
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_invalidate
 
 	/* Invalidate Branch Predictor arrays */
 	mov 	r1,#0					
-	mcr		p15, 0, r1, c7, c5, 6			@ Invalidate BP
+	mcr	p15, 0, r1, c7, c5, 6			@ Invalidate BP
 
 	ldr		r0, =s_main_page_table
 	bl		mmu_ttbr0_set
@@ -145,15 +156,32 @@ __init_vmemory:
 	mcr     p15, 0, r0, c1, c1, 0	
 
 	bl		iCache_enable
-	bl		cachel2_enable
 	bl		dCache_enable
+
+	bl		get_cpu_id
+	cmp		r0, #1
+	bleq	cachel2_enable
+	
 	bl		mmu_enable
 
 	/** Handling VFP and NEON */
 __init_vfp:
 	/* FIX IT */
 	
-
+	bl		get_cpu_id
+	cmp		r0, #1
+#ifdef CONFIG_AMP
+	beq		__init_c_env
+1:
+	ldr		r0, core1_ready
+	cmp		r0, #1
+	bne		1b
+	bl   	interrupt_interface_init
+	bl		mmu_tlb_invalidate
+	b   	ns_enter
+#else
+	beq		.
+#endif
 	/** Initializing C environment */
 __init_c_env:
 	bl	c_environment_init

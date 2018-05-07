@@ -63,8 +63,14 @@
 #define	FIQ_BIT          	0x40
 #define	IRQ_BIT          	0x80
 
-#define STACK_SIZE 8192 
+#define STACK_SIZE 4096
 #define STACK_SIZE_SHIFT 12 
+
+#ifdef CONFIG_AMP
+	#define MAX_CORES 2
+#else
+	#define MAX_CORES 1
+#endif
 
 /** SCR Bits*/
 #define  SCR_NS_BIT     	0x1
