@@ -98,10 +98,11 @@ s_main_page_table:
 .globl  ns_main_page_table
 ns_main_page_table:
 	// 63 1MB entries for kernel space
+	.set count16, 0
 	.rept (0x400)
-		.word 0
+		.word (count16 << 20) | S_KERNEL
+		.set count16, (count16 + 1)
 	.endr
-
 	// Rest 3G considered as Device area
 	.set count16, 0x400
 	.rept (0xC00)
