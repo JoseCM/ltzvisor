@@ -111,12 +111,6 @@ __init_vmemory:
 	bne		1f
 	bl		cachel2_init
 	bl  	cachel2_disable
-	mov		r0, #0
-	mov		r1, #0xF0
-	bl		cachel2_lockdown
-	mov		r0, #1
-	mov		r1, #0x0F
-	bl		cachel2_lockdown
 
 1:
 	bl		mmu_tlb_invalidate
