@@ -49,6 +49,7 @@
 */
 
 #include <ltzvisor_api.h>
+#include <page_tables.h>
 
 /** Main is part of the secure VM */
 #ifdef CONFIG_COUPLED
@@ -87,6 +88,10 @@ void ltzvisor_kickoff(void){
 
 	/** Exit from Monitor mode */
 	LTZVISOR_MON_EXIT();
+
+	dCache_clean();
+	cachel2_clean();
+	mmu_tlb_invalidate();
 
 	/** Secure guest entry point */
 	_start();
@@ -156,7 +161,7 @@ uint32_t ltzvisor_nsguest_create( struct guest_conf *g )
 	printk("      * NS_Guest load - OK  \n\t");
 
 	/* Get NS_Guest ready to run */
-	cp15_restore(&NS_Guest.core.vcpu_regs_cp15);
+	//cp15_restore(&NS_Guest.core.vcpu_regs_cp15);
 	set_guest_context( (uint32_t)&NS_Guest);
 	printk("      * NS_Guest ready to run - OK  \n\t");
 
@@ -178,7 +183,7 @@ uint32_t ltzvisor_sguest_create( struct guest_conf *g )
 	if(g->gce_trd_init) {
 		memcpy((uint32_t *)g->gce_trd_load,(uint32_t *)g->gce_trd_start,(g->gce_trd_end - g->gce_trd_start));
 	}
-	printk("      * NS_Guest load - OK  \n\t");
+	printk("      * S_Guest load - OK  \n\t");
 
 	return TRUE;
 }

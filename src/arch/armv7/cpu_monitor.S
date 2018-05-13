@@ -361,5 +361,6 @@ _mon_scheduler:
 	SCR_NS_SET
 	isb
 	dsb	
+
 	movs    pc, lr				@ Return from exception (MON -> NS_SVC)
 
