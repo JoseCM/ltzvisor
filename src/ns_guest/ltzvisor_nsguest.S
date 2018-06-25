@@ -53,6 +53,6 @@
 .global NSGUEST_start
 .global NSGUEST_end
 NSGUEST_start:
-	.incbin "/home/josemartins/code/freertos_v10_ns/freertos.bin"
+	.incbin "????"
 	//.incbin "./src/ns_guest/zynq/baremetal.bin";
 NSGUEST_end:

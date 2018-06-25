@@ -105,46 +105,14 @@ __init_vmemory:
 	bl    	mmu_disable
 	bl		dCache_disable
 	bl		iCache_disable
-	bl		cachel2_init
-	bl		cachel2_disable
 
 	bl		mmu_tlb_invalidate
 	bl		dCache_invalidate
 	bl		iCache_invalidate
-	bl		cachel2_invalidate
 
 	/* Invalidate Branch Predictor arrays */
 	mov 	r1,#0					
 	mcr		p15, 0, r1, c7, c5, 6			@ Invalidate BP
-
-	ldr		r0, =s_main_page_table
-	bl		mmu_ttbr0_set
-
-	ldr		r0, =0x55555555
-	bl 		mmu_set_domain_access
-
-	mrc     p15, 0, r0, c1, c1, 0	
-	orr		r0, r0, #SCR_NS_BIT	
-	mcr     p15, 0, r0, c1, c1, 0	
-
-	ldr		r0, =ns_main_page_table
-	bl		mmu_ttbr0_set
-
-	ldr		r0, =0x55555555
-	bl 		mmu_set_domain_access
-
-	bl		iCache_enable
-	bl		dCache_enable
-	bl		mmu_enable
-
-	mrc     p15, 0, r0, c1, c1, 0	
-	bic		r0, r0, #SCR_NS_BIT		
-	mcr     p15, 0, r0, c1, c1, 0	
-
-	bl		iCache_enable
-	bl		cachel2_enable
-	bl		dCache_enable
-	bl		mmu_enable
 
 	/** Handling VFP and NEON */
 __init_vfp:

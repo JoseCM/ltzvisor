@@ -63,5 +63,5 @@ struct guest_conf sguest_config = {
 		.gce_bin_start = (uint32_t) &SGUEST_start,
 		.gce_bin_end = (uint32_t) &SGUEST_end,
 		/* Load address */
-		.gce_bin_load = 0x4000000,
+		.gce_bin_load = ????,
 };

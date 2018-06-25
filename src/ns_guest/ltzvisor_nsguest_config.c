@@ -63,5 +63,5 @@ struct guest_conf nsguest_config = {
 		.gce_bin_start = (uint32_t) &NSGUEST_start,
 		.gce_bin_end = (uint32_t) &NSGUEST_end,
 		/* Load address */
-		.gce_bin_load = 0x10000000,
+		.gce_bin_load = ?????,
 };

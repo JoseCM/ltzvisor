@@ -89,10 +89,6 @@ void ltzvisor_kickoff(void){
 	/** Exit from Monitor mode */
 	LTZVISOR_MON_EXIT();
 
-	dCache_clean();
-	cachel2_clean();
-	mmu_tlb_invalidate();
-
 	/** Secure guest entry point */
 	_start();
 

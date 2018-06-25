@@ -54,5 +54,5 @@
 .global SGUEST_start
 .global SGUEST_end
 SGUEST_start:
-	.incbin "/home/josemartins/code/freertos_v10/freertos.bin"
+	.incbin "?????"
 SGUEST_end:
